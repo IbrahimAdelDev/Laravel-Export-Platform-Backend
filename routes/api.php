@@ -7,7 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\Admin\DataImport\PreviewImportController;
 use App\Http\Controllers\Admin\DataImport\StartImportController;
-use App\Http\Controllers\Admin\DataImport\ImportProgressController;
+use App\Http\Controllers\Admin\DataImport\TrackingProgressController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -35,4 +35,4 @@ Route::middleware('auth:sanctum', 'abilities:access-api')->group(function () {
 // test
 Route::post('/test', PreviewImportController::class);
 Route::post('/test2', StartImportController::class);
-Route::get('/imports/{id}/progress', ImportProgressController::class);
+Route::get('/imports/{id}/progress', TrackingProgressController::class);
