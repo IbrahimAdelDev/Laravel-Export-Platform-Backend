@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\AuthenticationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -58,4 +59,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
         });
+
+        // ModelNotFound Handling: when a ModelNotFoundException is thrown, we will return a JSON response with a message indicating that the requested resource was not found and a 404 status code. This is useful for cases where you are trying to retrieve a model by its ID and it does not exist in the database.
+        $exceptions->renderable(function (ModelNotFoundException $e, Request $request) {
+        if ($request->is('api/*')) {
+            // Get the model name from the exception to provide a more specific error message
+            $modelName = class_basename($e->getModel()); 
+
+            return response()->json([
+                'success' => false, 
+                'message' => "Resource not found. No query results for model [{$modelName}]."
+            ], 404);
+        }
+    });
     })->create();
