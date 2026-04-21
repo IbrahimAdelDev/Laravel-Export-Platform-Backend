@@ -9,21 +9,21 @@ class PreviewImportService
 {
     public function execute($file)
     {
-        // حفظ الملف باسم احترافي
+        // save file with profisional name and timestamp to avoid conflicts
         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . now()->format('Y_m_d_His') . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('data_imports/temp', $fileName, 'local');
 
         $absolutePath = Storage::disk('local')->path($path);
 
         if (!file_exists($absolutePath) || !is_readable($absolutePath)) {
-            throw new \Exception("لا يمكن قراءة الملف من الخادم.");
+            throw new \Exception("The file cannot be read from the server.");
         }
 
         $fastExcel = new FastExcel();
         $sheets = $fastExcel->withoutHeaders()->importSheets($absolutePath);
         
         $previewData = [];
-        // المكتبة بترجع الإندكس بدءاً من 0، والفرونت بيعرضها بدءاً من 1
+        // The library returns the index starting from 0, while the frontend displays it starting from 1
         foreach ($sheets as $index => $sheetData) {
             $previewData[] = [
                 'sheet_name' => 'Sheet ' . ($index + 1), // ده اللي هيرجع من الفرونت بعدين
