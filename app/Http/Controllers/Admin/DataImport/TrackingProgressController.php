@@ -23,22 +23,12 @@ class TrackingProgressController extends Controller
         try {
             $progressData = $this->progressService->getProgressDetails($id);
 
-            return response()->json([
-                'success' => true,
-                'data'    => $progressData
-            ]);
+            return $this->successResponse($progressData, 'Progress retrieved successfully.', 200);
             
         } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Import record not found.'
-            ], 404);
+            return $this->errorResponse('Import record not found.', 404);
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while retrieving the import status.',
-                'error'   => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('An error occurred while retrieving the import status.', 500);
         }
     }
 }
