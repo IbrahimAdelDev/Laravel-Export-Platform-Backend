@@ -19,7 +19,7 @@ class ExportStatisticsMasterJob implements ShouldQueue
     public $tries = 3;
     public $backoff = [10, 30];
 
-    // استخدمنا اسم مختلف تماماً عن لارافيل
+    // We used a completely different name than Laravel's default
     public $importRecordId; 
     public $sheetIndex;
     public $mapping;
@@ -38,17 +38,20 @@ class ExportStatisticsMasterJob implements ShouldQueue
         if ($this->batch()->cancelled()) { return; }
 
         $importRecord = ImportBatch::find($this->importRecordId); 
+
+        $importRecord->update(['status' => 'processing']);
+
         $absolutePath = Storage::disk('local')->path($importRecord->file_path);
 
         $chunkSize = 500;
         $chunk = [];
-        $rowIndex = 0; // 1. ضفنا عداد الصفوف
+        $rowIndex = 0; // 1. We added a row counter
 
         (new FastExcel)->sheet($this->sheetIndex)->withoutHeaders()->import($absolutePath, function ($row) use (&$chunk, &$rowIndex, $chunkSize) {
             
             $rowIndex++;
 
-            // 2. هنتجاهل أول 3 صفوف بالكامل (عشان دي عناوين الجدول)
+            // 2. We will skip the first 3 rows completely (since they are table headers)
             if ($rowIndex <= 3) {
                 return; 
             }
@@ -64,5 +67,8 @@ class ExportStatisticsMasterJob implements ShouldQueue
         if (!empty($chunk)) {
             $this->batch()->add(new ProcessExportStatisticsWorkerJob($this->importRecordId, $chunk, $this->mapping, $this->extraData));
         }
+
+        $actualTotalRows = max(0, $rowIndex - 3);
+        $importRecord->update(['total_rows' => $actualTotalRows]);
     }
 }

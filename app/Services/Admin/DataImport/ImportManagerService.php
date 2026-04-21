@@ -18,13 +18,13 @@ class ImportManagerService
     public function handleMultipleSheets($user, array $data)
     {
         $importType = $data['import_type'];
-        // جلب الاستراتيجية من المانيجر (مبدأ Inversion of Control)
+        // Retrieve the strategy from the manager (Inversion of Control principle)
         $strategy = $this->strategyManager->getStrategy($importType);
 
         $batches = [];
 
         foreach ($data['sheets_mapping'] as $sheetMapping) {
-            // الترانزاكشن لكل شيت عشان لو شيت فشل، الشيتات التانية تشتغل عادي
+            // Use a transaction per sheet so that if one sheet fails, the others can still process normally
             DB::transaction(function () use ($user, $data, $strategy, $importType, $sheetMapping, &$batches) {
                 
                 $batch = ImportBatch::create([
@@ -36,12 +36,25 @@ class ImportManagerService
                 ]);
 
                 ActivityLog::create([
-                    'causer_id'   => $user->id,
-                    'causer_type' => get_class($user),
-                    'description' => "بدء استيراد نوع ({$importType}) للشيت: {$sheetMapping['sheet_name']}",
+                    'log_name'     => 'Data_import',
+                    'description'  => "Starting import of type ({$importType}) for sheet: {$sheetMapping['sheet_name']}",
+
+                    'causer_id'    => $user->id,
+                    'causer_type'  => get_class($user),
+
+                    'subject_id'   => $batch->id,
+                    'subject_type' => get_class($batch),
+
+                    'properties'   => [
+                        'sheet_name'        => $sheetMapping['sheet_name'],
+                        'origin_country_id' => $data['origin_country_id']
+                    ],
+
+                    'ip_address'   => request()->ip(),
+                    'user_agent'   => request()->userAgent(),
                 ]);
 
-                // هنا بنباصي "Sheet 1" للـ Strategy
+                // Here we pass "Sheet 1" to the Strategy
                 $strategy->startImport(
                     $batch, 
                     $sheetMapping['sheet_name'], 

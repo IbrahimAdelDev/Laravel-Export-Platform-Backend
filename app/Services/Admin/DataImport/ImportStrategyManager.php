@@ -11,7 +11,7 @@ class ImportStrategyManager
         $bindingName = ImportStrategyInterface::class . '_' . $importType;
 
         if (!app()->bound($bindingName)) {
-            throw new \Exception("نوع الاستيراد [{$importType}] غير مدعوم أو غير مسجل.");
+            throw new \Exception("Import type [{$importType}] is not supported or not registered.");
         }
 
         return app()->make($bindingName);

@@ -21,7 +21,7 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
     public $tries = 3; 
     public $backoff = [10, 30, 60]; 
 
-    public $importRecordId; // نفس الاسم الجديد
+    public $importRecordId;
     public $chunk;
     public $mapping;
     public $extraData;
@@ -54,7 +54,7 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
                 }
 
                 $hsCode = (string) $row[$hsCodeColumn];
-                $productName = $row[$nameColumn] ?? 'غير محدد';
+                $productName = $row[$nameColumn] ?? 'Not specified';
                 $destCountryName = trim($row[$destCountryColumn] ?? '');
 
                 if (empty($destCountryName)) {
@@ -90,16 +90,16 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
                                 'product_id'             => $product->id,
                                 'year'                   => $year,
                             ], [
-                                'export_unit'           => $product->unit,
-                                'total_export_quantity' => $qty,
-                                'total_export_value'    => $val,
+                                'export_unit'            => $product->unit,
+                                'total_export_quantity'  => $qty,
+                                'total_export_value'     => $val,
                             ]);
                         }
                     }
                 }
             }
             
-            // تحديث العدد باستخدام المتغير الصحيح اللي بيشاور على الـ ID في الداتابيز
+            // Update the count using the correct variable that points to the database ID
             ImportBatch::where('id', $this->importRecordId)->increment('processed_rows', count($this->chunk));
         });
     }
