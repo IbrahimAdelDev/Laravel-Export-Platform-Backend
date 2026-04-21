@@ -10,12 +10,12 @@ class ImportServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        // بنسجل الاستراتيجيات في الـ Container باستخدام الـ Type كاسم مميز
+        // We register the strategies in the Container using the Type as a unique key
         $this->app->bind(ImportStrategyInterface::class . '_export_statistics', function ($app) {
             return new ExportStatisticsImportStrategy();
         });
 
-        // لاحقاً:
+        // Later:
         // $this->app->bind(ImportStrategyInterface::class . '_exporters', function ($app) { ... });
     }
 }
