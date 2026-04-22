@@ -18,13 +18,13 @@ class CompanyController extends Controller
 
     public function store(StoreCompanyRequest $request)
     {
-        // بنباصي اليوزر اللي عامل الريكويست (اللي جابه Sanctum) والداتا المفلترة
+        // Benbasy, the user who made the request (the one Sanctum brought) and the filtered data
         $company = $this->companyService->createCompanyForUser($request->user(), $request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'تم تسجيل الشركة بنجاح. جاري مراجعة البيانات من قبل الإدارة.',
-            'data'    => $company
-        ], 201);
+        return $this->successResponse(
+            $company, 
+            'The company is active and registered. The data is currently being reviewed by management.', 
+            201
+        );
     }
 }

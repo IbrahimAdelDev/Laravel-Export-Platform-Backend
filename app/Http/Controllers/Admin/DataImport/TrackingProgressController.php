@@ -20,15 +20,8 @@ class TrackingProgressController extends Controller
 
     public function __invoke($id): JsonResponse
     {
-        try {
-            $progressData = $this->progressService->getProgressDetails($id);
+        $progressData = $this->progressService->getProgressDetails($id);
 
-            return $this->successResponse($progressData, 'Progress retrieved successfully.', 200);
-            
-        } catch (ModelNotFoundException $e) {
-            return $this->errorResponse('Import record not found.', 404);
-        } catch (Exception $e) {
-            return $this->errorResponse('An error occurred while retrieving the import status.', 500);
-        }
+        return $this->successResponse($progressData, 'Progress retrieved successfully.', 200);
     }
 }

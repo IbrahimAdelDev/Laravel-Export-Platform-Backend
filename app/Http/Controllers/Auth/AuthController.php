@@ -41,9 +41,8 @@ class AuthController extends Controller
         $cookieAccess = cookie()->forget('access_token');
         $cookieRefresh = cookie()->forget('refresh_token');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully.'
-        ])->withCookie($cookieAccess)->withCookie($cookieRefresh);
+        return $this->successResponse([], 'Logged out successfully.')
+                    ->withCookie($cookieAccess)
+                    ->withCookie($cookieRefresh);
     }
 }

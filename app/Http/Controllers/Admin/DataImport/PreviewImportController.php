@@ -13,12 +13,10 @@ class PreviewImportController extends Controller
         try {
             $data = $previewService->execute($request->file('file'));
             
-            return response()->json([
-                'success' => true,
-                ...$data
-            ]);
+            return $this->successResponse($data, 'Preview generated successfully.');
+            
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 }
