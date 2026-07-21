@@ -25,6 +25,8 @@ class AuthService
             ]);
         }
 
+        $user->tokens()->delete();
+
         return $this->generateTokens($user);
     }
 
@@ -36,7 +38,8 @@ class AuthService
             ]);
         }
 
-        $user->currentAccessToken()->delete();
+        // $user->currentAccessToken()->delete();
+        $user->tokens()->delete();
 
         return $this->generateTokens($user);
     }
@@ -46,7 +49,7 @@ class AuthService
         $accessToken = $user->createToken(
             'access_token',
             ['access-api'],
-            now()->addMinutes(15)
+            now()->addMinutes(60)
         )->plainTextToken;
 
         // Create a refresh token with a longer expiration time and a specific ability

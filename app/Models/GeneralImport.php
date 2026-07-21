@@ -2,21 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class ExportStatistic extends Model
+class GeneralImport extends Model
 {
     use HasFactory;
 
+    protected $table = 'general_imports';
+
     protected $fillable = [
-        'origin_country_id',
-        'destination_country_id',
+        'country_id',
         'product_id',
         'year',
-        'export_unit',
-        'total_export_quantity',
-        'total_export_value',
+        'month',
+        'unit',
+        'quantity',
+        'value_million_usd',
     ];
 
     public function country()

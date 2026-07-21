@@ -19,8 +19,9 @@ class ImportProgressService
             'status'              => $importBatch->status,
             'processed_rows'      => $importBatch->processed_rows,
             'total_rows'          => $importBatch->total_rows,
-            'progress_percentage' => 0,
-            'queue_details'       => null,
+            'progress_percentage' => $importBatch->progress_percentage,
+            'started_at'          => $importBatch->started_at,
+            'completed_at'        => $importBatch->completed_at,
         ];
 
         // If the queue is not linked yet, return the basic data

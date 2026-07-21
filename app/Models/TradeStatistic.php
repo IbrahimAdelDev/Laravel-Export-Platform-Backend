@@ -15,9 +15,10 @@ class TradeStatistic extends Model
         'product_id',
         'company_id',
         'year',
+        'month',
         'unit',
         'quantity',
-        'value_m_usd',
+        'value_million_usd',
     ];
 
     // Origin country of the trade

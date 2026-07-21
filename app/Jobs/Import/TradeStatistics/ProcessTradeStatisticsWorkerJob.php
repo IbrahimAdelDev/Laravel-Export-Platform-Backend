@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Jobs\Import;
+namespace App\Jobs\Import\TradeStatistics;
 
 use App\Models\Product;
 use App\Models\Country;
-use App\Models\ExportStatistic;
+use App\Models\TradeStatistic;
 use App\Models\ImportBatch;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -13,8 +13,9 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
-class ProcessExportStatisticsWorkerJob implements ShouldQueue
+class ProcessTradeStatisticsWorkerJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -42,6 +43,9 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
 
         DB::transaction(function () use ($originCountryId) {
             
+            $dataToInsert = [];
+            $now = Carbon::now();
+
             foreach ($this->chunk as $row) {
                 
                 $hsCodeColumn      = $this->mapping['hs_code'] ?? null;
@@ -53,7 +57,18 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
                     continue; 
                 }
 
-                $hsCode = (string) $row[$hsCodeColumn];
+                $rawHsCode = preg_replace('/[^0-9]/', '', (string) $row[$hsCodeColumn]);
+                
+                // If the cleaned HS code is less than 6 digits, we skip it since it's not valid for our purposes
+                if (strlen($rawHsCode) < 6) {
+                    continue; 
+                }
+
+                // Getting the different levels of HS codes
+                $hsCode6  = substr($rawHsCode, 0, 6);
+                $hsCode8  = strlen($rawHsCode) >= 8 ? substr($rawHsCode, 0, 8) : null;
+                $hsCode10 = strlen($rawHsCode) >= 10 ? substr($rawHsCode, 0, 10) : null;
+
                 $productName = $row[$nameColumn] ?? 'Not specified';
                 $destCountryName = trim($row[$destCountryColumn] ?? '');
 
@@ -62,7 +77,11 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
                 }
 
                 $product = Product::firstOrCreate(
-                    ['hs_code' => $hsCode],
+                    [
+                        'hs_code_6'  => $hsCode6,
+                        'hs_code_8'  => $hsCode8,
+                        'hs_code_10' => $hsCode10,
+                    ],
                     [
                         'name_ar' => $productName,
                         'category' => 'agricultural', 
@@ -84,19 +103,32 @@ class ProcessExportStatisticsWorkerJob implements ShouldQueue
                         $val = $valueColumn !== null ? (float) ($row[$valueColumn] ?? 0) : 0;
 
                         if ($qty > 0 || $val > 0) {
-                            ExportStatistic::updateOrCreate([
+                            $dataToInsert[] = [
                                 'origin_country_id'      => $originCountryId,
                                 'destination_country_id' => $destinationCountry->id,
                                 'product_id'             => $product->id,
+                                'company_id'             => null, 
                                 'year'                   => $year,
-                            ], [
-                                'export_unit'            => $product->unit,
-                                'total_export_quantity'  => $qty,
-                                'total_export_value'     => $val,
-                            ]);
+                                'month'                  => 0, // الإحصائية السنوية من الإكسيل الثابت
+                                'unit'                   => $product->unit,
+                                'quantity'               => $qty,
+                                'value_million_usd'      => $val,
+                                'created_at'             => $now,
+                                'updated_at'             => $now,
+                            ];
                         }
                     }
                 }
+            }
+
+            if (!empty($dataToInsert)) {
+                TradeStatistic::upsert(
+                    $dataToInsert,
+                    // Columns that define uniqueness for upsert
+                    ['origin_country_id', 'destination_country_id', 'product_id', 'year', 'month'], 
+                    // Columns to update if a duplicate is found
+                    ['quantity', 'value_million_usd', 'unit', 'updated_at']
+                );
             }
             
             // Update the count using the correct variable that points to the database ID

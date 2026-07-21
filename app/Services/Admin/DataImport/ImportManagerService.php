@@ -47,7 +47,7 @@ class ImportManagerService
 
                     'properties'   => [
                         'sheet_name'        => $sheetMapping['sheet_name'],
-                        'origin_country_id' => $data['origin_country_id']
+                        'origin_country_id' => $data['origin_country_id'] ?? null,
                     ],
 
                     'ip_address'   => request()->ip(),
@@ -59,7 +59,7 @@ class ImportManagerService
                     $batch, 
                     $sheetMapping['sheet_name'], 
                     $sheetMapping['columns'], 
-                    ['origin_country_id' => $data['origin_country_id']]
+                    ['origin_country_id' => $data['origin_country_id'] ?? null]
                 );
 
                 $batches[] = $batch;

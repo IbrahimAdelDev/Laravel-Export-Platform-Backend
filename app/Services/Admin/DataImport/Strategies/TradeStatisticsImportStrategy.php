@@ -3,12 +3,13 @@
 namespace App\Services\Admin\DataImport\Strategies;
 
 use App\Contracts\ImportStrategyInterface;
-use App\Jobs\Import\ExportStatisticsMasterJob;
+use App\Jobs\Import\TradeStatistics\TradeStatisticsMasterJob;
 use Illuminate\Support\Facades\Bus;
 use App\Models\ImportBatch;
 use Illuminate\Bus\Batch;
+use Throwable;
 
-class ExportStatisticsImportStrategy implements ImportStrategyInterface
+class TradeStatisticsImportStrategy implements ImportStrategyInterface
 {
     public function startImport($batch, $sheetName, $mapping, $extraData)
     {
@@ -21,7 +22,7 @@ class ExportStatisticsImportStrategy implements ImportStrategyInterface
         if ($sheetIndex < 1) { $sheetIndex = 1; }
 
         $busBatch = Bus::batch([
-            new ExportStatisticsMasterJob($importRecordId, $sheetIndex, $mapping, $extraData)
+            new TradeStatisticsMasterJob($importRecordId, $sheetIndex, $mapping, $extraData)
         ])->name("Import: {$batch->type} - {$sheetName}")
         ->then(function (Batch $busBatch) use ($importRecordId) {
             // Executes automatically when all workers complete successfully (100%)
@@ -30,7 +31,7 @@ class ExportStatisticsImportStrategy implements ImportStrategyInterface
                 'completed_at' => now(),
             ]);
         })
-        ->catch(function (Batch $busBatch, \Throwable $e) use ($importRecordId) {
+        ->catch(function (Batch $busBatch, Throwable $e) use ($importRecordId) {
             // Executes if there is a critical failure in the batch
             ImportBatch::where('id', $importRecordId)->update([
                 'status' => 'failed',

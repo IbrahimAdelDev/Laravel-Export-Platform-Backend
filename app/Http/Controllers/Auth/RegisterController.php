@@ -12,7 +12,7 @@ class RegisterController extends Controller
 {
     use TokenResponseTrait;
 
-    protected $registerService;
+    protected RegisterService $registerService;
 
     public function __construct(RegisterService $registerService)
     {

@@ -13,6 +13,10 @@ class PreviewImportService
         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . now()->format('Y_m_d_His') . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('data_imports/temp', $fileName, 'local');
 
+        if (!$path) {
+            throw new \Exception("Failed to store the uploaded file.");
+        }
+
         $absolutePath = Storage::disk('local')->path($path);
 
         if (!file_exists($absolutePath) || !is_readable($absolutePath)) {

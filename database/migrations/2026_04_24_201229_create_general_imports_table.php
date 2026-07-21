@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('export_statistics', function (Blueprint $table) {
+        Schema::create('general_imports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('origin_country_id')->constrained('countries')->onDelete('cascade');
-            $table->foreignId('destination_country_id')->constrained('countries')->onDelete('cascade');
+            $table->foreignId('country_id')->constrained('countries')->onDelete('cascade');
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-            $table->integer('year');
-            $table->enum('export_unit', [
+            
+            $table->year('year');
+            $table->tinyInteger('month')->required()->default(0); // 0 for annual data, 1-12 for monthly data
+            
+            $table->enum('unit', [
                 'Carton Box', 
                 'Ton', 
                 'liter', 
@@ -33,9 +35,11 @@ return new class extends Migration
                 'Hectometer',
                 'Milliliter',
                 ])->default('Ton');// 'Ton', 'kg', 'liter', 'piece', etc.
-            $table->decimal('total_export_quantity', 15, 4);
-            $table->decimal('total_export_value', 15, 4);
+            $table->decimal('quantity', 15, 4);
+            $table->decimal('value_million_usd', 15, 4);
             $table->timestamps();
+
+            $table->unique(['country_id', 'product_id', 'year', 'month'], 'general_import_unique');
         });
     }
 
@@ -44,6 +48,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('export_statistics');
+        Schema::dropIfExists('general_imports');
     }
 };

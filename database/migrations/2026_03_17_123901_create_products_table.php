@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('hs_code')->unique();
+
+            $table->string('hs_code_6', 6)->index(); // international 6-digit HS code
+            $table->string('hs_code_8', 8)->nullable()->index(); // regional 8-digit HS code
+            $table->string('hs_code_10', 10)->nullable()->index(); // national 10-digit HS code
+
             $table->string('name_ar')->nullable();
             $table->string('name_en')->nullable();
             $table->enum('category', ['agricultural', 'industrial', 'other']); // 'agricultural', 'industrial', 'other'

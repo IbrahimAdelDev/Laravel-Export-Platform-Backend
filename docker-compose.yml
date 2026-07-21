@@ -11,6 +11,8 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
+    # give write permissions to storage and cache directories, then start php-fpm
+    command: sh -c "chmod -R 777 storage bootstrap/cache && php-fpm"
     depends_on:
       - db
       - redis
@@ -67,6 +69,25 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    networks:
+      - export_network
+
+  ai_engine:
+    build:
+      context: ./ai_engine
+    container_name: nabtax_ai_engine
+    restart: unless-stopped
+    ports:
+      - "8001:8000" # التعديل هنا: 8001 ده اللي هنكلمه من بره، و 8000 ده الداخلي
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      AI_SECRET_KEY: ${AI_SECRET_KEY}
+      AI_DB_URL: ${AI_DB_URL}
+    depends_on:
+      - db
     networks:
       - export_network
 

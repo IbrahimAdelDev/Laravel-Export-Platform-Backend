@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs\Import;
+namespace App\Jobs\Import\GeneralImports;
 
 use App\Models\ImportBatch;
 use Rap2hpoutre\FastExcel\FastExcel;
@@ -12,25 +12,22 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 
-class ExportStatisticsMasterJob implements ShouldQueue
+class GeneralImportsMasterJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
     public $backoff = [10, 30];
 
-    // We used a completely different name than Laravel's default
     public $importRecordId; 
     public $sheetIndex;
     public $mapping;
-    public $extraData;
 
-    public function __construct($importRecordId, $sheetIndex, $mapping, $extraData)
+    public function __construct($importRecordId, $sheetIndex, $mapping)
     {
         $this->importRecordId = $importRecordId;
         $this->sheetIndex = $sheetIndex;
         $this->mapping = $mapping;
-        $this->extraData = $extraData;
     }
 
     public function handle()
@@ -38,37 +35,39 @@ class ExportStatisticsMasterJob implements ShouldQueue
         if ($this->batch()->cancelled()) { return; }
 
         $importRecord = ImportBatch::find($this->importRecordId); 
-
-        $importRecord->update(['status' => 'processing']);
+        $importRecord->update([
+            'status' => 'processing',
+            'started_at' => now(),
+        ]);
 
         $absolutePath = Storage::disk('local')->path($importRecord->file_path);
 
         $chunkSize = 500;
         $chunk = [];
-        $rowIndex = 0; // 1. We added a row counter
+        $rowIndex = 0; 
 
         (new FastExcel)->sheet($this->sheetIndex)->withoutHeaders()->import($absolutePath, function ($row) use (&$chunk, &$rowIndex, $chunkSize) {
             
             $rowIndex++;
 
-            // 2. We will skip the first 3 rows completely (since they are table headers)
-            if ($rowIndex <= 3) {
+            // تخطي صف العناوين الأول فقط بناءً على شكل الشيت الجديد
+            if ($rowIndex <= 1) {
                 return; 
             }
 
             $chunk[] = $row;
             
             if (count($chunk) === $chunkSize) {
-                $this->batch()->add(new ProcessExportStatisticsWorkerJob($this->importRecordId, $chunk, $this->mapping, $this->extraData));
+                $this->batch()->add(new ProcessGeneralImportsWorkerJob($this->importRecordId, $chunk, $this->mapping));
                 $chunk = [];
             }
         });
 
         if (!empty($chunk)) {
-            $this->batch()->add(new ProcessExportStatisticsWorkerJob($this->importRecordId, $chunk, $this->mapping, $this->extraData));
+            $this->batch()->add(new ProcessGeneralImportsWorkerJob($this->importRecordId, $chunk, $this->mapping));
         }
 
-        $actualTotalRows = max(0, $rowIndex - 3);
+        $actualTotalRows = max(0, $rowIndex - 1);
         $importRecord->update(['total_rows' => $actualTotalRows]);
     }
 }

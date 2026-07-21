@@ -18,10 +18,30 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('cascade'); // Initially optional
             $table->integer('year');
-            $table->enum('unit', ['Ton', 'kg', 'liter', 'piece'])->default('Ton'); // 'Ton', 'kg', 'liter', 'piece', etc.
+            $table->tinyInteger('month')->required()->default(0); // 0 for annual data, 1-12 for monthly data
+            $table->enum('unit', [
+                'Carton Box', 
+                'Ton', 
+                'liter', 
+                'meter',
+                'Crate', 
+                'Metric Ton', 
+                'Piece', 
+                'Pound', 
+                '1000 Sticks', 
+                'Wooden Barrel',
+                'Uncontainerized', 
+                'Canes', 
+                'Hectometer',
+                'Milliliter',
+                ])->default('Ton');// 'Ton', 'kg', 'liter', 'piece', etc.
             $table->decimal('quantity', 15, 4);
             $table->decimal('value_million_usd', 15, 4);
             $table->timestamps();
+            $table->unique(
+                ['origin_country_id', 'destination_country_id', 'product_id', 'year', 'month'], 
+                'trade_flow_unique'
+            );
         });
     }
 

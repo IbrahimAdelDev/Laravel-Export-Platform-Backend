@@ -10,7 +10,9 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'hs_code',
+        'hs_code_6',
+        'hs_code_8',
+        'hs_code_10',
         'name_ar',
         'name_en',
         'category',
@@ -25,16 +27,22 @@ class Product extends Model
         return $this->belongsToMany(Company::class, 'company_products');
     }
 
-    // Trade statistics for this product
+    // Trade statistics involving this product
     public function tradeStatistics()
     {
         return $this->hasMany(TradeStatistic::class);
     }
 
-    // Global market demands for this product
-    public function exportStatistics()
+    // Total exports of this product globally
+    public function generalExports()
     {
-        return $this->hasMany(ExportStatistic::class);
+        return $this->hasMany(GeneralExport::class);
+    }
+
+    // Total imports of this product globally
+    public function generalImports()
+    {
+        return $this->hasMany(GeneralImport::class);
     }
 
     // Users interested in this product

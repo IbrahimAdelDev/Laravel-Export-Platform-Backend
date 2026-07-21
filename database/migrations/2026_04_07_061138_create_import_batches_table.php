@@ -19,7 +19,15 @@ return new class extends Migration
             // File information
             $table->string('file_name');
             $table->string('file_path'); // File path in storage
-            $table->enum('type', ['export_statistics', 'exporters', 'importers', 'trade_statistics', 'products', 'countries'])->default('export_statistics'); // Type of data being imported
+            $table->enum('type', [
+                'trade_statistics', 
+                'general_exports', 
+                'general_imports', 
+                'exporters', 
+                'importers',
+                'products', 
+                'countries'
+                ])->default('trade_statistics'); // Type of data being imported
             
             // Status and progress tracking
             $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending'); // pending, processing, completed, failed
@@ -32,6 +40,7 @@ return new class extends Migration
             $table->json('errors')->nullable(); 
 
             $table->timestamps();
+            $table->timestamp('started_at')->nullable();   // to track when the import started
             $table->timestamp('completed_at')->nullable(); // to track when the import was completed
         });
     }

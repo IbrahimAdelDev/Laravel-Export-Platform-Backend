@@ -15,7 +15,7 @@ class StartImportRequest extends FormRequest
         return [
             'file_path'         => 'required|string',
             'import_type'       => 'required|string',
-            'origin_country_id' => 'required|exists:countries,id',
+            'origin_country_id' => 'required_if:import_type,trade_statistics|exists:countries,id',
             'sheets_mapping'    => 'required|array|min:1',
             'sheets_mapping.*.sheet_name' => 'required|string', // مثال: "Sheet 1"
             'sheets_mapping.*.columns'    => 'required|array',

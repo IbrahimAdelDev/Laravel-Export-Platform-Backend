@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 class RegisterService
 {
-    protected $authService;
+    protected AuthService $authService;
 
     public function __construct(AuthService $authService)
     {
