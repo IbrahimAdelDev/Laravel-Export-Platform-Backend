@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
-    protected $companyService;
+    protected CompanyService $companyService;
 
     public function __construct(CompanyService $companyService)
     {

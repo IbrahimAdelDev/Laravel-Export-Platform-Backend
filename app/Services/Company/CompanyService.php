@@ -13,7 +13,7 @@ class CompanyService
             
             // 1. Create the company with status 'pending'
             $company = Company::create([
-                'name'          => $data['name'],
+                'name'          => $data['company_name'],
                 'country_id'    => $data['country_id'],
                 'type'          => $data['type'],
                 'email'         => $data['email'] ?? null,
@@ -23,15 +23,15 @@ class CompanyService
             ]);
 
             // 2. Create the company's location (headquarters)
-            $company->locations()->create([
-                'type'    => 'headquarters',
-                'country_id' => $data['location']['country_id'],
-                'address' => $data['location']['address'],
-                'city'    => $data['location']['city'],
-            ]);
+            // $company->locations()->create([
+            //     'type'    => 'headquarters',
+            //     'country_id' => $data['location']['country_id'],
+            //     'address' => $data['location']['address'],
+            //     'city'    => $data['location']['city'],
+            // ]);
 
-            // 3. Create the company's phones (polymorphic relationship)
-            $company->phones()->createMany($data['phones']);
+            // // 3. Create the company's phones (polymorphic relationship)
+            // $company->phones()->createMany($data['phones']);
 
             // 4. Linking the user to the company as Owner in the Pivot Table
             $user->companies()->attach($company->id, [

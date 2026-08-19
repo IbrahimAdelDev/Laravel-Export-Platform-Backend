@@ -11,6 +11,12 @@ use App\Http\Controllers\Admin\DataImport\TrackingProgressController;
 use App\Http\Controllers\Public\LandingPageController;
 use App\Http\Controllers\Exporter\DashboardController;
 use App\Http\Controllers\Analysis\MarketAnalysisController;
+use App\Http\Controllers\Directory\DirectoryController;
+use App\Http\Controllers\Company\CompanySettingsController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\DataImport\ImportHistoryController;
+use App\Http\Controllers\Admin\AdminCompanyController;
+use App\Http\Controllers\Admin\AdminUserController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -48,6 +54,26 @@ Route::middleware(['auth:sanctum', 'abilities:access-api'])->group(function () {
         Route::get('/recommendations', [MarketAnalysisController::class, 'recommendations']);
         Route::get('/market-analytics/{hs_code}', [MarketAnalysisController::class, 'marketAnalytics']);
     });
+
+    Route::prefix('directory')->group(function () {
+        Route::get('/importers', [DirectoryController::class, 'importers']);
+        Route::get('/products', [DirectoryController::class, 'products']);
+        Route::get('/products/{id}/market-demand', [DirectoryController::class, 'productMarketDemand']);
+    });
+
+    Route::prefix('company')->group(function () {
+        Route::get('/profile', [CompanySettingsController::class, 'getProfile']);
+        Route::put('/profile', [CompanySettingsController::class, 'updateProfile']);
+        
+        Route::post('/locations', [CompanySettingsController::class, 'addLocation']);
+        Route::delete('/locations/{id}', [CompanySettingsController::class, 'deleteLocation']);
+        
+        Route::post('/phones', [CompanySettingsController::class, 'addPhone']);
+        Route::delete('/phones/{id}', [CompanySettingsController::class, 'deletePhone']);
+        
+        Route::post('/portfolio', [CompanySettingsController::class, 'addPortfolio']);
+        Route::delete('/portfolio/{id}', [CompanySettingsController::class, 'deletePortfolio']);
+    });
     
     Route::post('/companies', [CompanyController::class, 'store']);
     
@@ -56,6 +82,22 @@ Route::middleware(['auth:sanctum', 'abilities:access-api'])->group(function () {
         Route::post('/imports/start', StartImportController::class);
         Route::post('/admin/preview-import', PreviewImportController::class);
         Route::get('/imports/{id}/progress', TrackingProgressController::class);
+        Route::prefix('admin')->group(function () {
+        
+        // إحصائيات النظام
+            Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
+            
+            // إدارة رفع البيانات
+            Route::get('/imports/history', ImportHistoryController::class);
+
+            Route::get('/companies', [AdminCompanyController::class, 'index']);
+            Route::post('/companies/{id}/verify', [AdminCompanyController::class, 'verify']);
+            Route::post('/companies/{id}/reject', [AdminCompanyController::class, 'reject']);
+
+            // إدارة المستخدمين
+            Route::get('/users', [AdminUserController::class, 'index']);
+
+        });
     });
 });
 
